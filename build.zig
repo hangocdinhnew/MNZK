@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
             .abi = .gnu,
         },
     });
-    b.exe_dir = "zig-out/EFI/BOOT/";
+    b.exe_dir = "zig-out/Kernel/EFI/BOOT/";
 
     // Standard release options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
@@ -20,7 +20,7 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "bootx64",
-        .root_source_file = std.Build.FileSource.relative("src/main.zig"),
+        .root_source_file = b.path("src/kernel/main.zig"),
         .target = target,
         .optimize = mode,
     });
@@ -29,7 +29,7 @@ pub fn build(b: *std.Build) void {
 
     const install_step = b.addInstallArtifact(exe, .{ .dest_dir = .{ .override = .bin } });
 
-    const run_cmd = b.addSystemCommand(&.{ "qemu-system-x86_64", "-serial", "stdio", "-bios", "OVMF.fd", "-drive", "format=raw,file=fat:rw:zig-out" });
+    const run_cmd = b.addSystemCommand(&.{ "qemu-system-x86_64", "-serial", "stdio", "-bios", "binary/OVMF.fd", "-drive", "format=raw,file=fat:rw:zig-out/Kernel" });
     run_cmd.step.dependOn(&install_step.step);
     if (b.args) |args| {
         run_cmd.addArgs(args);
